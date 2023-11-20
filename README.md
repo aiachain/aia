@@ -27,5 +27,6 @@ Miners pledge AIA to become validator nodes. The reward of nodes is gas fee, whi
 - Low transaction fees: AIA chain uses a unique Gas fee system to calculate the cost of transactions and smart contract operations. Adopting this system can enable users to control the cost of transactions and smart contracts more flexibly, and consume less handling fees when executing contract operations, reducing development or migration costs.
 
 ## Interact with Us on Social Media
+- Website：https://www.aiachain.org
 - Twitter：https://twitter.com/AIAChain
 - Telegram：https://t.me/aiachainorg
