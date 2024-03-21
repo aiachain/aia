@@ -204,10 +204,12 @@ type Congress struct {
 	recents    *lru.ARCCache // Snapshots for recent block to speed up reorgs
 	signatures *lru.ARCCache // Signatures of recent blocks to speed up mining
 
-	blacklists      *lru.Cache // blacklists caches recent blacklist to speed up transactions validation
-	blLock          sync.Mutex // Make sure only get blacklist once for each block
-	eventCheckRules *lru.Cache // eventCheckRules caches recent EventCheckRules to speed up log validation
-	rulesLock       sync.Mutex // Make sure only get eventCheckRules once for each block
+	blacklists       *lru.Cache // blacklists caches recent blacklist to speed up transactions validation
+	blLock           sync.Mutex // Make sure only get blacklist once for each block
+	eventCheckRules  *lru.Cache // eventCheckRules caches recent EventCheckRules to speed up log validation
+	rulesLock        sync.Mutex // Make sure only get eventCheckRules once for each block
+	topValidatorList *lru.Cache // topValidatorList caches recent blacklist to speed up transactions validation
+	vlLock           sync.Mutex // Make sure only get topValidatorList once for each block
 
 	proposals map[common.Address]bool // Current list of proposals we are pushing
 
@@ -240,21 +242,23 @@ func New(chainConfig *params.ChainConfig, db ethdb.Database) *Congress {
 	recents, _ := lru.NewARC(inmemorySnapshots)
 	signatures, _ := lru.NewARC(inmemorySignatures)
 	blacklists, _ := lru.New(inmemoryBlacklist)
+	topValidatorList, _ := lru.New(inmemoryBlacklist)
 	rules, _ := lru.New(inmemoryBlacklist)
 
 	abi := systemcontract.GetInteractiveABI()
 
 	return &Congress{
-		chainConfig:     chainConfig,
-		config:          &conf,
-		db:              db,
-		recents:         recents,
-		signatures:      signatures,
-		blacklists:      blacklists,
-		eventCheckRules: rules,
-		proposals:       make(map[common.Address]bool),
-		abi:             abi,
-		signer:          types.LatestSignerForChainID(chainConfig.ChainID),
+		chainConfig:      chainConfig,
+		config:           &conf,
+		db:               db,
+		recents:          recents,
+		signatures:       signatures,
+		blacklists:       blacklists,
+		topValidatorList: topValidatorList,
+		eventCheckRules:  rules,
+		proposals:        make(map[common.Address]bool),
+		abi:              abi,
+		signer:           types.LatestSignerForChainID(chainConfig.ChainID),
 	}
 }
 
@@ -1249,6 +1253,22 @@ func (c *Congress) ValidateTx(sender common.Address, tx *types.Transaction, head
 			}
 		}
 	}
+
+	// Validator does not allow sending transactions to system contracts
+	if c.chainConfig.RedCoastBlock != nil && c.chainConfig.RedCoastBlock.Cmp(header.Number) < 0 {
+		if to := tx.To(); to != nil {
+			if *to == systemcontract.ValidatorsV1ContractAddr || *to == systemcontract.PunishV1ContractAddr || *to == systemcontract.SysGovContractAddr {
+				m, err := c.getTopValidators1(header, parentState)
+				if err != nil {
+					return err
+				}
+				if _, exist := m[sender]; exist {
+					log.Trace("Evil coinbase", "addr", sender.String())
+					return types.ErrTransactionDenied
+				}
+			}
+		}
+	}
 	return nil
 }
 
@@ -1321,6 +1341,46 @@ func (c *Congress) getBlacklist(header *types.Header, parentState *state.StateDB
 		}
 	}
 	c.blacklists.Add(header.ParentHash, m)
+	return m, nil
+}
+
+func (c *Congress) getTopValidators1(header *types.Header, parentState *state.StateDB) (map[common.Address]bool, error) {
+	if v, ok := c.topValidatorList.Get(header.ParentHash); ok {
+		return v.(map[common.Address]bool), nil
+	}
+
+	c.blLock.Lock()
+	defer c.blLock.Unlock()
+	if v, ok := c.topValidatorList.Get(header.ParentHash); ok {
+		return v.(map[common.Address]bool), nil
+	}
+
+	// can't get topValidatorList from cache, try to call the contract
+	alABI := c.abi[systemcontract.ValidatorsV1ContractName]
+	get := func(method string) ([]common.Address, error) {
+		ret, err := c.commonCallContract(header, parentState, alABI, systemcontract.ValidatorsV1ContractAddr, method, 1)
+		if err != nil {
+			log.Error(fmt.Sprintf("%s failed", method), "err", err)
+			return nil, err
+		}
+
+		validators, ok := ret[0].([]common.Address)
+		if !ok {
+			return []common.Address{}, errors.New("invalid topValidatorList format")
+		}
+		return validators, nil
+	}
+	validators, err := get("getTopValidators")
+	if err != nil {
+		return nil, err
+	}
+
+	m := make(map[common.Address]bool)
+	for _, addr := range validators {
+		m[addr] = true
+	}
+
+	c.topValidatorList.Add(header.ParentHash, m)
 	return m, nil
 }
 
