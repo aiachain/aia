@@ -16,6 +16,7 @@ const (
 	SysContractV2
 	WAIAContractV1
 	TokenUpdateV1
+	SysContractV3
 )
 
 type SysContractVersion int
@@ -56,6 +57,11 @@ func ApplySystemContractUpgrade(version SysContractVersion, state *state.StateDB
 	case TokenUpdateV1:
 		sysContracts = []IUpgradeAction{
 			&hardForkTokens{},
+		}
+	case SysContractV3:
+		sysContracts = []IUpgradeAction{
+			&hardForkSysContractV3{},
+			&hardForkReward{},
 		}
 	default:
 		log.Crit("unsupported SysContractVersion", "version", version)

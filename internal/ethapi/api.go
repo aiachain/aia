@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/consensus/congress"
 	"math/big"
 	"sort"
 	"strconv"
@@ -71,6 +72,9 @@ func (s *PublicEthereumAPI) GasPrice(ctx context.Context) (*hexutil.Big, error) 
 	if head := s.b.CurrentHeader(); head.BaseFee != nil {
 		tipcap.Add(tipcap, head.BaseFee)
 	}
+	if s.b.ChainConfig().IsSunflower(s.b.CurrentHeader().Number) && tipcap.Cmp(congress.MinGasPrice) < 0 {
+		tipcap = congress.MinGasPrice
+	}
 	return (*hexutil.Big)(tipcap), err
 }
 
@@ -79,6 +83,9 @@ func (s *PublicEthereumAPI) MaxPriorityFeePerGas(ctx context.Context) (*hexutil.
 	tipcap, err := s.b.SuggestGasTipCap(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if s.b.ChainConfig().IsSunflower(s.b.CurrentHeader().Number) && tipcap.Cmp(congress.MinGasPrice) < 0 {
+		tipcap = congress.MinGasPrice
 	}
 	return (*hexutil.Big)(tipcap), err
 }
@@ -123,11 +130,20 @@ func (s *PublicEthereumAPI) GasPricePrediction(ctx context.Context) (map[string]
 	if err != nil {
 		return nil, err
 	}
-	return map[string]uint{
-		"fast":   price[0],
-		"median": price[1],
-		"low":    price[2],
-	}, nil
+
+	if s.b.ChainConfig().IsSunflower(s.b.CurrentHeader().Number) {
+		return map[string]uint{
+			"fast":   uint(math.BigMax(big.NewInt(int64(price[0])), congress.MinGasPrice).Int64()),
+			"median": uint(math.BigMax(big.NewInt(int64(price[1])), congress.MinGasPrice).Int64()),
+			"low":    uint(math.BigMax(big.NewInt(int64(price[2])), congress.MinGasPrice).Int64()),
+		}, nil
+	} else {
+		return map[string]uint{
+			"fast":   price[0],
+			"median": price[1],
+			"low":    price[2],
+		}, nil
+	}
 }
 
 // Syncing returns false in case the node is currently not syncing with the network. It can be up to date or has not

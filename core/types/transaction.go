@@ -40,6 +40,7 @@ var (
 	errEmptyTypedTx         = errors.New("empty typed transaction bytes")
 	ErrAddressDenied        = errors.New("address denied")
 	ErrTransactionDenied    = errors.New("transaction rejected")
+	ErrGasPriceTooLow       = errors.New("gasprice is too low")
 )
 
 // Transaction types.

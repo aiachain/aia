@@ -102,7 +102,7 @@ func (b *writeBuffer) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
-const maxUint24 = int(^uint32(0) >> 8)
+const maxUint25 = int(^uint32(0) >> 7)
 
 func readUint24(b []byte) uint32 {
 	return uint32(b[2]) | uint32(b[1])<<8 | uint32(b[0])<<16

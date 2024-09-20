@@ -1110,7 +1110,8 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 	commitUncles(w.localUncles)
 	commitUncles(w.remoteUncles)
 
-	if w.chainConfig.IsEvolveBrand(big.NewInt(w.chain.CurrentHeader().Number.Int64() + 1)) {
+	if w.chainConfig.IsEvolveBrand(big.NewInt(w.chain.CurrentHeader().Number.Int64()+1)) &&
+		!w.chainConfig.IsSunflower(big.NewInt(w.chain.CurrentHeader().Number.Int64()+1)) {
 		w.commitCoinbaseTransactions(w.coinbase, interrupt)
 	}
 

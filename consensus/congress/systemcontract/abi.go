@@ -542,6 +542,23 @@ const TokensInteractiveABI = `[
 	}
 ]`
 
+const RewardInteractiveABI = `
+[
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_admin",
+				"type": "address"
+			}
+		],
+		"name": "initialize",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]`
+
 // DevMappingPosition is the position of the state variable `devs`.
 // Since the state variables are as follow:
 //    bool public initialized;
@@ -581,6 +598,7 @@ var (
 	AddressListContractName  = "address_list"
 	ValidatorsV1ContractName = "validators_v1"
 	PunishV1ContractName     = "punish_v1"
+	RewardContractName       = "reward"
 	ValidatorsContractAddr   = common.HexToAddress("0x000000000000000000000000000000000000f000")
 	PunishContractAddr       = common.HexToAddress("0x000000000000000000000000000000000000f001")
 	ProposalAddr             = common.HexToAddress("0x000000000000000000000000000000000000f002")
@@ -590,6 +608,8 @@ var (
 	PunishV1ContractAddr     = common.HexToAddress("0x000000000000000000000000000000000000F006")
 	// SysGovToAddr is the To address for the system governance transaction, NOT contract address
 	SysGovToAddr = common.HexToAddress("0x000000000000000000000000000000000000ffff")
+
+	RewardContractAddr = common.HexToAddress("0x000000000000000000000000000000000000F00a")
 
 	WAIAContractName   = "waia"
 	TokensContractName = "tokens"
@@ -620,6 +640,9 @@ func init() {
 
 	tmpABI, _ = abi.JSON(strings.NewReader(TokensInteractiveABI))
 	abiMap[TokensContractName] = tmpABI
+
+	tmpABI, _ = abi.JSON(strings.NewReader(RewardInteractiveABI))
+	abiMap[RewardContractName] = tmpABI
 }
 
 func GetInteractiveABI() map[string]abi.ABI {

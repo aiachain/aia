@@ -115,7 +115,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 	commonTxs := make([]*types.Transaction, 0, len(block.Transactions()))
 	systemTxs := make([]*types.Transaction, 0)
 	for i, tx := range block.Transactions() {
-		if i == 0 && p.config.IsEvolveBrand(header.Number) {
+		if i == 0 && p.config.IsEvolveBrand(header.Number) && !p.config.IsSunflower(header.Number) {
 			if !types.IsCoinbase(tx) {
 				return nil, nil, 0, fmt.Errorf("Incorrect coinbase transaction")
 			}

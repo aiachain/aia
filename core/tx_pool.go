@@ -680,7 +680,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	// do some extra validation if needed
 	if pool.txValidator != nil && !pool.disableExValidate {
 		err := pool.txValidator.ValidateTx(from, tx, pool.nextFakeHeader, pool.currentState)
-		if err == types.ErrAddressDenied || err == types.ErrTransactionDenied {
+		if err == types.ErrAddressDenied || err == types.ErrTransactionDenied || err == types.ErrGasPriceTooLow {
 			log.Info("ValidateTx error", "err", err)
 			return err
 		}

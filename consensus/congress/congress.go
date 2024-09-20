@@ -63,6 +63,8 @@ const (
 	inmemoryBlacklist = 21 // Number of recent blacklist snapshots to keep in memory
 )
 
+var MinGasPrice = big.NewInt(15000 * params.GWei)
+
 type blacklistDirection uint
 
 const (
@@ -633,9 +635,13 @@ func (c *Congress) Finalize(chain consensus.ChainHeaderReader, header *types.Hea
 	}
 
 	// execute block reward tx.
-	if len(*txs) > 0 {
+	if len(*txs) > 0 && !c.chainConfig.IsSunflower(header.Number) {
 		if err := c.trySendBlockReward(chain, header, state); err != nil {
 			return err
+		}
+	} else if c.chainConfig.IsSunflower(header.Number) {
+		if err := c.trySendBlockReward(chain, header, state); err != nil {
+			panic(err)
 		}
 	}
 
@@ -725,7 +731,11 @@ func (c *Congress) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header
 	}
 
 	// deposit block reward if any tx exists.
-	if len(txs) > 0 {
+	if len(txs) > 0 && !c.chainConfig.IsSunflower(header.Number) {
+		if err := c.trySendBlockReward(chain, header, state); err != nil {
+			panic(err)
+		}
+	} else if c.chainConfig.IsSunflower(header.Number) {
 		if err := c.trySendBlockReward(chain, header, state); err != nil {
 			panic(err)
 		}
@@ -788,7 +798,7 @@ func (c *Congress) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header
 
 func (c *Congress) trySendBlockReward(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB) error {
 	fee := state.GetBalance(consensus.FeeRecoder)
-	if fee.Cmp(common.Big0) <= 0 {
+	if fee.Cmp(common.Big0) <= 0 && !c.chainConfig.IsSunflower(header.Number) {
 		return nil
 	}
 
@@ -1190,6 +1200,9 @@ func (c *Congress) PreHandle(chain consensus.ChainHeaderReader, header *types.He
 	if c.chainConfig.TokenUpdateBlock != nil && c.chainConfig.TokenUpdateBlock.Cmp(header.Number) == 0 {
 		return systemcontract.ApplySystemContractUpgrade(systemcontract.TokenUpdateV1, state, header, newChainContext(chain, c), c.chainConfig)
 	}
+	if c.chainConfig.SunflowerBlock != nil && c.chainConfig.SunflowerBlock.Cmp(header.Number) == 0 {
+		return systemcontract.ApplySystemContractUpgrade(systemcontract.SysContractV3, state, header, newChainContext(chain, c), c.chainConfig)
+	}
 	return nil
 }
 
@@ -1267,6 +1280,21 @@ func (c *Congress) ValidateTx(sender common.Address, tx *types.Transaction, head
 					return types.ErrTransactionDenied
 				}
 			}
+		}
+	}
+
+	if c.chainConfig.IsSunflower(header.Number) {
+		// skip testnet a tx
+		if c.chainConfig.GetChainId(header.Number).Cmp(params.MainnetChainConfig.GetChainId(header.Number)) != 0 {
+			if tx.Hash() == common.HexToHash("0x7a9e860a633d03fa3c92a32d6512f8d9f332c8b7f45ac17320ceea07d2f408c7") {
+				log.Info("Skip tx")
+				return nil
+			}
+		}
+
+		if tx.GasPrice().Cmp(MinGasPrice) < 0 {
+			log.Trace("Gas price is too low")
+			return types.ErrGasPriceTooLow
 		}
 	}
 	return nil
