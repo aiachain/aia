@@ -7,13 +7,11 @@ AIA Chain is a distributed public blockchain designed to become an efficient, se
 We believe in the power of blockchain technology, which will make society more just, transparent and open. We are committed to promoting the development and application of this technology, abide by the principles of honesty, fairness, transparency, openness and trust, and let the blockchain create greater value for the entire human society. We look forward to a more open, transparent, free and equal future , thriving world!
 
 ## AIA’s Performance
-- TPS: 2000+
+- TPS: 100000+
 - Average block interval: 3s
 
 ## Consensus Mechanism
 Adopt the consensus-based Byzantine Fault Tolerance (BFT) consensus algorithm APoS consensus mechanism, which has the characteristics of low transaction cost, low transaction delay, and high transaction concurrency.
-
-The maximum number of validators supported is 21.
 
 ## Economic Model
 The endogenous token on the chain is AIA; the transactions consume AIA as gas fee.

@@ -1203,6 +1203,9 @@ func (c *Congress) PreHandle(chain consensus.ChainHeaderReader, header *types.He
 	if c.chainConfig.SunflowerBlock != nil && c.chainConfig.SunflowerBlock.Cmp(header.Number) == 0 {
 		return systemcontract.ApplySystemContractUpgrade(systemcontract.SysContractV3, state, header, newChainContext(chain, c), c.chainConfig)
 	}
+	if c.chainConfig.JasmineBlock != nil && c.chainConfig.JasmineBlock.Cmp(header.Number) == 0 {
+		return systemcontract.ApplySystemContractUpgrade(systemcontract.SysContractV4, state, header, newChainContext(chain, c), c.chainConfig)
+	}
 	return nil
 }
 

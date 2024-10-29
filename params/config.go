@@ -66,6 +66,7 @@ var (
 		TokenUpdateBlock:    big.NewInt(22281035),
 		TulipBlock:          big.NewInt(22281040),
 		SunflowerBlock:      big.NewInt(33366450),
+		JasmineBlock:        big.NewInt(34490700),
 		Congress: &CongressConfig{
 			Period: 3,
 			Epoch:  200,
@@ -99,6 +100,7 @@ var (
 		TokenUpdateBlock:    big.NewInt(22830700),
 		TulipBlock:          big.NewInt(23636840),
 		SunflowerBlock:      big.NewInt(32673510),
+		JasmineBlock:        big.NewInt(35911770),
 		Congress: &CongressConfig{
 			Period: 3,
 			Epoch:  200,
@@ -129,18 +131,18 @@ var (
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, nil, nil, nil, new(EthashConfig), nil, nil}
+	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, new(EthashConfig), nil, nil}
 
 	// AllCliqueProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the Clique consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}, nil}
+	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}, nil}
 
-	AllCongressProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, big.NewInt(0), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5), big.NewInt(6), big.NewInt(6), big.NewInt(6), nil, nil, &CongressConfig{Period: 0, Epoch: 30000}}
+	AllCongressProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, big.NewInt(0), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5), big.NewInt(6), big.NewInt(6), big.NewInt(6), big.NewInt(6), nil, nil, &CongressConfig{Period: 0, Epoch: 30000}}
 
-	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, nil, nil, nil, new(EthashConfig), nil, nil}
+	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, new(EthashConfig), nil, nil}
 	TestRules       = TestChainConfig.Rules(new(big.Int))
 )
 
@@ -234,6 +236,7 @@ type ChainConfig struct {
 	TokenUpdateBlock *big.Int `json:"tokenUpdateBlock,omitempty"` // TokenUpdateBlock switch block (nil = no fork, 0 = already activated)
 	TulipBlock       *big.Int `json:"tulipBlock,omitempty"`       // TulipBlock switch block (nil = no fork, 0 = already activated)
 	SunflowerBlock   *big.Int `json:"sunflowerBlock,omitempty"`   // SunflowerBlock switch block (nil = no fork, 0 = already activated)
+	JasmineBlock     *big.Int `json:"jasmineBlock,omitempty"`     // JasmineBlock switch block (nil = no fork, 0 = already activated)
 
 	// Various consensus engines
 	Ethash   *EthashConfig   `json:"ethash,omitempty"`
@@ -286,7 +289,7 @@ func (c *ChainConfig) String() string {
 	default:
 		engine = "unknown"
 	}
-	return fmt.Sprintf("{ChainID: %v NewChainID: %v Homestead: %v DAO: %v DAOSupport: %v EIP150: %v EIP155: %v EIP158: %v Byzantium: %v Constantinople: %v Petersburg: %v Istanbul: %v, Muir Glacier: %v, NewChainIDBlock: %v, BlackListBlock: %v, RedCoastBlock: %v, Berlin: %v, London: %v, Sophon: %v, EvolveBrandBlock: %v,TokenUpdateBlock: %v,TulipBlock: %v,SunflowerBlock: %v,Engine: %v}",
+	return fmt.Sprintf("{ChainID: %v NewChainID: %v Homestead: %v DAO: %v DAOSupport: %v EIP150: %v EIP155: %v EIP158: %v Byzantium: %v Constantinople: %v Petersburg: %v Istanbul: %v, Muir Glacier: %v, NewChainIDBlock: %v, BlackListBlock: %v, RedCoastBlock: %v, Berlin: %v, London: %v, Sophon: %v, EvolveBrandBlock: %v,TokenUpdateBlock: %v,TulipBlock: %v,SunflowerBlock: %v,JasmineBlock: %v,Engine: %v}",
 		c.ChainID,
 		c.NewChainID,
 		c.HomesteadBlock,
@@ -310,6 +313,7 @@ func (c *ChainConfig) String() string {
 		c.TokenUpdateBlock,
 		c.TulipBlock,
 		c.SunflowerBlock,
+		c.JasmineBlock,
 		engine,
 	)
 }
@@ -434,6 +438,11 @@ func (c *ChainConfig) IsSunflower(num *big.Int) bool {
 	return isForked(c.SunflowerBlock, num)
 }
 
+// IsJasmine returns whether num is either equal to the Jasmine fork block or greater.
+func (c *ChainConfig) IsJasmine(num *big.Int) bool {
+	return isForked(c.JasmineBlock, num)
+}
+
 // CheckCompatible checks whether scheduled fork transitions have been imported
 // with a mismatching chain configuration.
 func (c *ChainConfig) CheckCompatible(newcfg *ChainConfig, height uint64) *ConfigCompatError {
@@ -478,6 +487,7 @@ func (c *ChainConfig) CheckConfigForkOrder() error {
 		{name: "londonBlock", block: c.LondonBlock},
 		{name: "tulipBlock", block: c.TulipBlock},
 		{name: "sunflowerBlock", block: c.SunflowerBlock},
+		{name: "jasmineBlock", block: c.JasmineBlock},
 	} {
 		if lastFork.name != "" {
 			// Next one must be higher or the same number
@@ -603,6 +613,9 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 	}
 	if isForkIncompatible(c.SunflowerBlock, newcfg.SunflowerBlock, head) {
 		return newCompatError("Sunflower update fork block", c.SunflowerBlock, newcfg.SunflowerBlock)
+	}
+	if isForkIncompatible(c.JasmineBlock, newcfg.JasmineBlock, head) {
+		return newCompatError("Jasmine update fork block", c.JasmineBlock, newcfg.JasmineBlock)
 	}
 	return nil
 }
