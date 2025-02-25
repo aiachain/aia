@@ -863,7 +863,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 			}
 		}
 		// Start executing the transaction
-		w.current.state.Prepare(tx.Hash(), w.current.tcount)
+		w.current.state.SetTxContext(tx.Hash(), w.current.tcount)
 
 		logs, err := w.commitTransaction(tx, coinbase)
 		switch {
@@ -965,7 +965,7 @@ func (w *worker) commitCoinbaseTransactions(coinbase common.Address, interrupt *
 	tx := types.NewTransaction(nonce, coinbase, types.CoinbaseReward(w.chainConfig, big.NewInt(w.chain.CurrentHeader().Number.Int64()+1)), 0, new(big.Int), nil)
 
 	// Start executing the transaction
-	w.current.state.Prepare(tx.Hash(), w.current.tcount)
+	w.current.state.SetTxContext(tx.Hash(), w.current.tcount)
 
 	logs, err := w.commitTransaction(tx, coinbase)
 	switch {

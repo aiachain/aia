@@ -25,16 +25,7 @@ type OpCode byte
 
 // IsPush specifies if an opcode is a PUSH opcode.
 func (op OpCode) IsPush() bool {
-	switch op {
-	case PUSH1, PUSH2, PUSH3, PUSH4, PUSH5, PUSH6, PUSH7, PUSH8, PUSH9, PUSH10, PUSH11, PUSH12, PUSH13, PUSH14, PUSH15, PUSH16, PUSH17, PUSH18, PUSH19, PUSH20, PUSH21, PUSH22, PUSH23, PUSH24, PUSH25, PUSH26, PUSH27, PUSH28, PUSH29, PUSH30, PUSH31, PUSH32:
-		return true
-	}
-	return false
-}
-
-// IsStaticJump specifies if an opcode is JUMP.
-func (op OpCode) IsStaticJump() bool {
-	return op == JUMP
+	return PUSH0 <= op && op <= PUSH32
 }
 
 // 0x0 range - arithmetic ops.
@@ -69,8 +60,11 @@ const (
 	SHL    OpCode = 0x1b
 	SHR    OpCode = 0x1c
 	SAR    OpCode = 0x1d
+)
 
-	SHA3 OpCode = 0x20
+// 0x20 range - crypto.
+const (
+	KECCAK256 OpCode = 0x20
 )
 
 // 0x30 range - closure state.
@@ -120,6 +114,10 @@ const (
 	MSIZE    OpCode = 0x59
 	GAS      OpCode = 0x5a
 	JUMPDEST OpCode = 0x5b
+	TLOAD    OpCode = 0x5c
+	TSTORE   OpCode = 0x5d
+	MCOPY    OpCode = 0x5e
+	PUSH0    OpCode = 0x5f
 )
 
 // 0x60 range - pushes.
@@ -225,6 +223,7 @@ const (
 
 	STATICCALL   OpCode = 0xfa
 	REVERT       OpCode = 0xfd
+	INVALID      OpCode = 0xfe
 	SELFDESTRUCT OpCode = 0xff
 )
 
@@ -261,7 +260,7 @@ var opCodeToString = map[OpCode]string{
 	MULMOD: "MULMOD",
 
 	// 0x20 range - crypto.
-	SHA3: "SHA3",
+	KECCAK256: "KECCAK256",
 
 	// 0x30 range - closure state.
 	ADDRESS:        "ADDRESS",
@@ -293,9 +292,7 @@ var opCodeToString = map[OpCode]string{
 	BASEFEE:     "BASEFEE",
 
 	// 0x50 range - 'storage' and execution.
-	POP: "POP",
-	//DUP:     "DUP",
-	//SWAP:    "SWAP",
+	POP:      "POP",
 	MLOAD:    "MLOAD",
 	MSTORE:   "MSTORE",
 	MSTORE8:  "MSTORE8",
@@ -307,8 +304,12 @@ var opCodeToString = map[OpCode]string{
 	MSIZE:    "MSIZE",
 	GAS:      "GAS",
 	JUMPDEST: "JUMPDEST",
+	TLOAD:    "TLOAD",
+	TSTORE:   "TSTORE",
+	MCOPY:    "MCOPY",
+	PUSH0:    "PUSH0",
 
-	// 0x60 range - push.
+	// 0x60 range - pushes.
 	PUSH1:  "PUSH1",
 	PUSH2:  "PUSH2",
 	PUSH3:  "PUSH3",
@@ -390,6 +391,7 @@ var opCodeToString = map[OpCode]string{
 	CREATE2:      "CREATE2",
 	STATICCALL:   "STATICCALL",
 	REVERT:       "REVERT",
+	INVALID:      "INVALID",
 	SELFDESTRUCT: "SELFDESTRUCT",
 
 	PUSH: "PUSH",
@@ -400,7 +402,7 @@ var opCodeToString = map[OpCode]string{
 func (op OpCode) String() string {
 	str := opCodeToString[op]
 	if len(str) == 0 {
-		return fmt.Sprintf("opcode 0x%x not defined", int(op))
+		return fmt.Sprintf("opcode %#x not defined", int(op))
 	}
 
 	return str
@@ -433,7 +435,7 @@ var stringToOp = map[string]OpCode{
 	"SAR":            SAR,
 	"ADDMOD":         ADDMOD,
 	"MULMOD":         MULMOD,
-	"SHA3":           SHA3,
+	"KECCAK256":      KECCAK256,
 	"ADDRESS":        ADDRESS,
 	"BALANCE":        BALANCE,
 	"ORIGIN":         ORIGIN,
@@ -473,6 +475,10 @@ var stringToOp = map[string]OpCode{
 	"MSIZE":          MSIZE,
 	"GAS":            GAS,
 	"JUMPDEST":       JUMPDEST,
+	"TLOAD":          TLOAD,
+	"TSTORE":         TSTORE,
+	"MCOPY":          MCOPY,
+	"PUSH0":          PUSH0,
 	"PUSH1":          PUSH1,
 	"PUSH2":          PUSH2,
 	"PUSH3":          PUSH3,
@@ -548,6 +554,7 @@ var stringToOp = map[string]OpCode{
 	"RETURN":         RETURN,
 	"CALLCODE":       CALLCODE,
 	"REVERT":         REVERT,
+	"INVALID":        INVALID,
 	"SELFDESTRUCT":   SELFDESTRUCT,
 }
 

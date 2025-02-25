@@ -101,7 +101,7 @@ func (c *Congress) finishProposalById(chain consensus.ChainHeaderReader, header 
 	msg := vmcaller.NewLegacyMessage(header.Coinbase, &systemcontract.SysGovContractAddr, 0, new(big.Int), math.MaxUint64, new(big.Int), data, false)
 
 	// execute message without a transaction
-	state.Prepare(common.Hash{}, 0)
+	state.SetTxContext(common.Hash{}, 0)
 	_, err = vmcaller.ExecuteMsg(msg, state, header, newChainContext(chain, c), c.chainConfig)
 	if err != nil {
 		return err
@@ -194,7 +194,7 @@ func (c *Congress) executeProposalMsg(chain consensus.ChainHeaderReader, header 
 func (c *Congress) executeEvmCallProposal(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, prop *Proposal, totalTxIndex int, txHash, bHash common.Hash) *types.Receipt {
 	// actually run the governance message
 	msg := vmcaller.NewLegacyMessage(prop.From, &prop.To, 0, prop.Value, header.GasLimit, new(big.Int), prop.Data, false)
-	state.Prepare(txHash, totalTxIndex)
+	state.SetTxContext(txHash, totalTxIndex)
 	_, err := vmcaller.ExecuteMsg(msg, state, header, newChainContext(chain, c), c.chainConfig)
 
 	// governance message will not actually consumes gas
@@ -228,7 +228,7 @@ func (c *Congress) ApplySysTx(evm *vm.EVM, state *state.StateDB, txIndex int, se
 		// evm action.
 		// actually run the governance message
 		msg := vmcaller.NewLegacyMessage(prop.From, &prop.To, 0, prop.Value, tx.Gas(), new(big.Int), prop.Data, false)
-		state.Prepare(tx.Hash(), txIndex)
+		state.SetTxContext(tx.Hash(), txIndex)
 		evm.TxContext = vm.TxContext{
 			Origin:   msg.From(),
 			GasPrice: new(big.Int).Set(msg.GasPrice()),

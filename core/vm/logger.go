@@ -109,7 +109,7 @@ type EVMLogger interface {
 	CaptureEnter(typ OpCode, from common.Address, to common.Address, input []byte, gas uint64, value *big.Int)
 	CaptureExit(output []byte, gasUsed uint64, err error)
 	CaptureFault(pc uint64, op OpCode, gas, cost uint64, scope *ScopeContext, depth int, err error)
-	CaptureEnd(output []byte, gasUsed uint64, t time.Duration, err error)
+	CaptureEnd(output []byte, gasUsed uint64, err error)
 }
 
 // StructLogger is an EVM state logger and implements EVMLogger.
@@ -218,7 +218,7 @@ func (l *StructLogger) CaptureFault(pc uint64, op OpCode, gas, cost uint64, scop
 }
 
 // CaptureEnd is called after the call finishes to finalize the tracing.
-func (l *StructLogger) CaptureEnd(output []byte, gasUsed uint64, t time.Duration, err error) {
+func (l *StructLogger) CaptureEnd(output []byte, gasUsed uint64, err error) {
 	l.output = output
 	l.err = err
 	if l.cfg.Debug {

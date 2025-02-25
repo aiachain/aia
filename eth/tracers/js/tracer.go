@@ -24,7 +24,6 @@ import (
 	"math/big"
 	"strings"
 	"sync/atomic"
-	"time"
 	"unicode"
 	"unsafe"
 
@@ -36,7 +35,7 @@ import (
 	tracers2 "github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/eth/tracers/js/internal/tracers"
 	"github.com/ethereum/go-ethereum/log"
-	"gopkg.in/olebedev/go-duktape.v3"
+	duktape "gopkg.in/olebedev/go-duktape.v3"
 )
 
 // camel converts a snake cased input string into a camel cased output.
@@ -703,7 +702,7 @@ func (jst *jsTracer) CaptureStart(env *vm.EVM, from common.Address, to common.Ad
 	// Compute intrinsic gas
 	isHomestead := env.ChainConfig().IsHomestead(env.Context.BlockNumber)
 	isIstanbul := env.ChainConfig().IsIstanbul(env.Context.BlockNumber)
-	intrinsicGas, err := core.IntrinsicGas(input, nil, jst.ctx["type"] == "CREATE", isHomestead, isIstanbul)
+	intrinsicGas, err := core.IntrinsicGas(input, nil, jst.ctx["type"] == "CREATE", isHomestead, isIstanbul, false)
 	if err != nil {
 		return
 	}
@@ -761,9 +760,8 @@ func (jst *jsTracer) CaptureFault(pc uint64, op vm.OpCode, gas, cost uint64, sco
 }
 
 // CaptureEnd is called after the call finishes to finalize the tracing.
-func (jst *jsTracer) CaptureEnd(output []byte, gasUsed uint64, t time.Duration, err error) {
+func (jst *jsTracer) CaptureEnd(output []byte, gasUsed uint64, err error) {
 	jst.ctx["output"] = output
-	jst.ctx["time"] = t.String()
 	jst.ctx["gasUsed"] = gasUsed
 
 	if err != nil {

@@ -18,14 +18,12 @@ package native
 
 import (
 	"encoding/json"
-	"math/big"
-	"strconv"
-	"sync/atomic"
-	"time"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/tracers"
+	"math/big"
+	"strconv"
+	"sync/atomic"
 )
 
 func init() {
@@ -128,7 +126,7 @@ func (t *fourByteTracer) CaptureFault(pc uint64, op vm.OpCode, gas, cost uint64,
 }
 
 // CaptureEnd is called after the call finishes to finalize the tracing.
-func (t *fourByteTracer) CaptureEnd(output []byte, gasUsed uint64, _ time.Duration, err error) {
+func (t *fourByteTracer) CaptureEnd(output []byte, gasUsed uint64, err error) {
 }
 
 // GetResult returns the json-encoded nested list of call traces, and any
