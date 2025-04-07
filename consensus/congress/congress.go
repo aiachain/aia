@@ -641,7 +641,7 @@ func (c *Congress) Finalize(chain consensus.ChainHeaderReader, header *types.Hea
 		}
 	} else if c.chainConfig.IsSunflower(header.Number) {
 		if err := c.trySendBlockReward(chain, header, state); err != nil {
-			panic(err)
+			return err
 		}
 	}
 
@@ -733,11 +733,11 @@ func (c *Congress) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header
 	// deposit block reward if any tx exists.
 	if len(txs) > 0 && !c.chainConfig.IsSunflower(header.Number) {
 		if err := c.trySendBlockReward(chain, header, state); err != nil {
-			panic(err)
+			return nil, nil, err
 		}
 	} else if c.chainConfig.IsSunflower(header.Number) {
 		if err := c.trySendBlockReward(chain, header, state); err != nil {
-			panic(err)
+			return nil, nil, err
 		}
 	}
 
